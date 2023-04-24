@@ -20,7 +20,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 # external libs
-#add_subdirectory("external") # before increasing warn levels (sad :( )
+add_subdirectory("external") # before increasing warn levels (sad :( )
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
