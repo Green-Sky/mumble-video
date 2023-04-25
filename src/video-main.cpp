@@ -6,12 +6,19 @@
 #include "queue.hpp"
 
 #include <string_view>
+#include <cstring>
 
 SDL_atomic_t should_quit;
 SDL_Window* main_window = NULL;
 SDL_Surface* main_surface = NULL;
 
 FrameQueue g_q;
+
+struct {
+	uint16_t sequence_id = 0;
+	uint64_t pos_in_img = 0;
+	std::array<uint8_t, 64*64*3> img_data;
+} g_current_frame {};
 
 struct MumbleAPI_v_1_2_x mumbleAPI;
 mumble_plugin_id_t ownID;
@@ -132,6 +139,8 @@ int video_main(void* data) {
 					break;
 			}
 		}
+
+		SDL_Delay(5);
 	}
 
 	SDL_Quit();
@@ -162,23 +171,83 @@ bool PLUGIN_CALLING_CONVENTION mumble_onReceiveData(mumble_connection_t connecti
 
 	mumbleAPI.log(ownID, "got data");
 
-	// TODO: do something with the data
-
-	// push new frame
-	auto new_frame = SDL_CreateRGBSurfaceWithFormat(
-		0, // reseved
-		64, 64, // w / h
-		//24, SDL_PIXELFORMAT_RGB888 // bpp / format (8+8+8=24)
-		SDL_BITSPERPIXEL(SDL_PIXELFORMAT_RGB888), SDL_PIXELFORMAT_RGB888 // bpp / format (8+8+8=24)
-	);
-
-	if (dataLength == 900) {
-		SDL_FillRect(new_frame, NULL, SDL_MapRGB(new_frame->format, 0xFF, 0xFF, 0x00));
-	} else {
-		SDL_FillRect(new_frame, NULL, SDL_MapRGB(new_frame->format, 0xFF, 0x00, 0xFF));
+	if (dataLength < 2+8+8) {
+		mumbleAPI.log(ownID, "data too short");
 	}
 
-	g_q.push(new_frame);
+	// 64x64 3bpp
+	const size_t img_size = 64 * 64 * 3; // hardcoded for "video-001"
+
+	size_t curr_pos = 0; // index in pkg data
+
+	uint16_t sequence_id = 0;
+	{ // sequence_id
+		sequence_id |= data[curr_pos++] << 8*0;
+		sequence_id |= data[curr_pos++] << 8*1;
+	}
+
+	if (sequence_id != g_current_frame.sequence_id) {
+		// discard old data
+		g_current_frame.sequence_id = sequence_id;
+		g_current_frame.pos_in_img = 0;
+	}
+
+	uint64_t pos_in_img = 0;
+	{ // position in picture
+		pos_in_img |= uint64_t(data[curr_pos++]) << 8*0;
+		pos_in_img |= uint64_t(data[curr_pos++]) << 8*1;
+		pos_in_img |= uint64_t(data[curr_pos++]) << 8*2;
+		pos_in_img |= uint64_t(data[curr_pos++]) << 8*3;
+		pos_in_img |= uint64_t(data[curr_pos++]) << 8*4;
+		pos_in_img |= uint64_t(data[curr_pos++]) << 8*5;
+		pos_in_img |= uint64_t(data[curr_pos++]) << 8*6;
+		pos_in_img |= uint64_t(data[curr_pos++]) << 8*7;
+	}
+
+	if (g_current_frame.pos_in_img != pos_in_img) {
+		// out of order data, drop
+		g_current_frame.pos_in_img = 0;
+	}
+
+	{ // add data to tmp buffer
+		const size_t img_data_size = dataLength-curr_pos;
+		if (img_data_size == 0) {
+			mumbleAPI.log(ownID, "no img data??");
+			return true;
+		}
+
+		if (img_data_size+pos_in_img > g_current_frame.img_data.size()) {
+			mumbleAPI.log(ownID, "img data too big??");
+			return true;
+		}
+
+		std::memcpy(g_current_frame.img_data.data() + pos_in_img, data + curr_pos, img_data_size);
+
+		g_current_frame.pos_in_img += img_data_size;
+	}
+
+	// frame complete
+	if (g_current_frame.pos_in_img == g_current_frame.img_data.size()) {
+		// push new frame
+		auto new_frame = SDL_CreateRGBSurfaceWithFormat(
+			0, // reseved
+			64, 64, // w / h
+			SDL_BITSPERPIXEL(SDL_PIXELFORMAT_RGB888), SDL_PIXELFORMAT_RGB888 // bpp / format (8+8+8=24)
+		);
+		//SDL_FillRect(new_frame, NULL, SDL_MapRGB(new_frame->format, 0xFF, 0x00, 0xFF));
+
+		// this call converts the 3bytes per pixel to internal 4bytes per pixel!
+		auto tmp_frame = SDL_CreateRGBSurfaceFrom(g_current_frame.img_data.data(), 64, 64, 24, 64*3, 0x0000ff, 0x00ff00, 0xff0000, 0);
+
+		//SDL_LockSurface(new_frame);
+		//std::memcpy(new_frame->pixels, g_current_frame.img_data.data(), g_current_frame.img_data.size());
+		//SDL_UnlockSurface(new_frame);
+		SDL_BlitSurface(tmp_frame, nullptr, new_frame, nullptr);
+
+		SDL_FreeSurface(tmp_frame);
+
+		g_q.push(new_frame);
+	}
 
 	return true;
 }
