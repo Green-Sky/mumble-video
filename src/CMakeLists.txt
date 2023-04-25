@@ -24,5 +24,7 @@ add_library(dummy_send_img_video SHARED
 	./dummy_send_img_video.cpp
 )
 
+target_compile_features(dummy_send_img_video PUBLIC cxx_std_11)
+
 target_link_libraries(dummy_send_img_video PUBLIC mumble_plugin)
 
