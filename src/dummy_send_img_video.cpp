@@ -6,6 +6,7 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <chrono>
 
 // exposes:
 //  unsigned char test_png_64x64_png[];
@@ -49,8 +50,9 @@ void mumble_shutdown() {
 }
 
 void main_loop(void) {
+	using namespace std::literals::chrono_literals;
+
 	size_t next_byte = 0;
-	using namespace std::chrono_literals;
 	while (!main_should_quit) {
 		std::this_thread::sleep_for(500ms);
 
