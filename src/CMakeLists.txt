@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 add_library(video SHARED
+	./queue.hpp
 	./video-main.cpp
 )
 

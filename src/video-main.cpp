@@ -11,7 +11,7 @@ SDL_atomic_t should_quit;
 SDL_Window* main_window = NULL;
 SDL_Surface* main_surface = NULL;
 
-extern FrameQueue q;
+FrameQueue q;
 
 struct MumbleAPI_v_1_2_x mumbleAPI;
 mumble_plugin_id_t ownID;
@@ -104,12 +104,12 @@ int video_main(void* data) {
 
     while (!SDL_AtomicGet(&should_quit)) {
         //Blit frame
-        std::optional<SDL_Surface> surface = q.pop();
+        auto surface = q.pop();
 
         if(surface.has_value()){
-            SDL_BlitSurface(&*surface, NULL, main_surface, NULL);
+            SDL_BlitSurface(*surface, NULL, main_surface, NULL);
 
-            SDL_FreeSurface(&*surface);
+            SDL_FreeSurface(*surface);
 
             SDL_UpdateWindowSurface(main_window);
         }
@@ -117,6 +117,7 @@ int video_main(void* data) {
         while(SDL_PollEvent(&e) != 0) {
             switch(e.type){
                 case SDL_QUIT:
+					// TODO: destroy instead lol
                     SDL_HideWindow(main_window);
 
                     break;
@@ -143,7 +144,7 @@ mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
 
     SDL_Thread* t = SDL_CreateThread(video_main, "video main thread", NULL);
 
-    if(!t){
+    if (!t) {
         return MUMBLE_EC_GENERIC_ERROR;
     }
 
