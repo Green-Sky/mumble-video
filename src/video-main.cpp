@@ -104,13 +104,15 @@ int video_main(void* data) {
 
     while (!SDL_AtomicGet(&should_quit)) {
         //Blit frame
-        //std::optional<SDL_Surface> surface = q.pop();
+        std::optional<SDL_Surface> surface = q.pop();
 
-        //if(surface.has_value()){
-        //    SDL_BlitSurface(surface, NULL, main_surface, NULL);
+        if(surface.has_value()){
+            SDL_BlitSurface(&*surface, NULL, main_surface, NULL);
 
-        //    SDL_UpdateWindowSurface(main_window);
-        //}
+            SDL_FreeSurface(&*surface);
+
+            SDL_UpdateWindowSurface(main_window);
+        }
 
         while(SDL_PollEvent(&e) != 0) {
             switch(e.type){
