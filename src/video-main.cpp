@@ -11,7 +11,7 @@ SDL_atomic_t should_quit;
 SDL_Window* main_window = NULL;
 SDL_Surface* main_surface = NULL;
 
-FrameQueue q;
+FrameQueue g_q;
 
 struct MumbleAPI_v_1_2_x mumbleAPI;
 mumble_plugin_id_t ownID;
@@ -104,7 +104,7 @@ int video_main(void* data) {
 
 	while (!SDL_AtomicGet(&should_quit)) {
 		//Blit frame
-		auto surface = q.pop();
+		auto surface = g_q.pop();
 
 		if (surface.has_value()) {
 			// TODO(green): SDL_BlitScaled
@@ -163,6 +163,22 @@ bool PLUGIN_CALLING_CONVENTION mumble_onReceiveData(mumble_connection_t connecti
 	mumbleAPI.log(ownID, "got data");
 
 	// TODO: do something with the data
+
+	// push new frame
+	auto new_frame = SDL_CreateRGBSurfaceWithFormat(
+		0, // reseved
+		64, 64, // w / h
+		//24, SDL_PIXELFORMAT_RGB888 // bpp / format (8+8+8=24)
+		SDL_BITSPERPIXEL(SDL_PIXELFORMAT_RGB888), SDL_PIXELFORMAT_RGB888 // bpp / format (8+8+8=24)
+	);
+
+	if (dataLength == 900) {
+		SDL_FillRect(new_frame, NULL, SDL_MapRGB(new_frame->format, 0xFF, 0xFF, 0x00));
+	} else {
+		SDL_FillRect(new_frame, NULL, SDL_MapRGB(new_frame->format, 0xFF, 0x00, 0xFF));
+	}
+
+	g_q.push(new_frame);
 
 	return true;
 }
