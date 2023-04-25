@@ -5,10 +5,16 @@
 
 #include "queue.hpp"
 
+#include <string_view>
+
+SDL_atomic_t should_quit;
 SDL_Window* main_window = NULL;
 SDL_Surface* main_surface = NULL;
 
 extern FrameQueue q;
+
+struct MumbleAPI_v_1_2_x mumbleAPI;
+mumble_plugin_id_t ownID;
 
 SDL_Window* init_sdl(const char* window_title, int window_pos_x, int window_pos_y, int window_width, int window_height, uint32_t flags){
     if(SDL_Init(SDL_INIT_VIDEO) < 0){
@@ -34,39 +40,38 @@ SDL_Window* init_sdl(const char* window_title, int window_pos_x, int window_pos_
     return main_window;
 }
 
-void mumble_shutdown() {}
+void mumble_shutdown() {
+	SDL_AtomicSet(&should_quit, 1);
+}
 
 MumbleStringWrapper mumble_getName() {
-    static const char name[] = "video";
+    static const std::string_view name {"video"};
 
-    MumbleStringWrapper wrapper;
-    wrapper.data = name;
-    wrapper.size = strlen(name);
-    wrapper.needsReleasing = false;
-
-    return wrapper;
+	return {
+		name.data(),
+		name.size(),
+		false
+	};
 }
 
 MumbleStringWrapper mumble_getAuthor() {
-    static const char author[] = "Erik Scholz & David Zero";
+    static const std::string_view author {"Erik Scholz & David Zero"};
 
-    MumbleStringWrapper wrapper;
-    wrapper.data = author;
-    wrapper.size = strlen(author);
-    wrapper.needsReleasing = false;
-
-    return wrapper;
+	return {
+		author.data(),
+		author.size(),
+		false
+	};
 }
 
 struct MumbleStringWrapper mumble_getDescription() {
-	static const char description[] = "Video streaming for Mumble";
+	static const std::string_view description {"Video streaming for Mumble"};
 
-	MumbleStringWrapper wrapper;
-	wrapper.data = description;
-	wrapper.size = strlen(description);
-	wrapper.needsReleasing = false;
-
-	return wrapper;
+	return {
+		description.data(),
+		description.size(),
+		false
+	};
 }
 
 mumble_version_t mumble_getVersion() {
@@ -83,10 +88,11 @@ mumble_version_t mumble_getAPIVersion() {
     return MUMBLE_PLUGIN_API_VERSION;
 }
 
-void mumble_registerAPIFunctions(void *) {}
+void mumble_registerAPIFunctions(void* apiStruct) {
+	mumbleAPI = MUMBLE_API_CAST(apiStruct);
+}
 
 void mumble_releaseResource(const void *) {
-    SDL_Quit();
 }
 
 int video_main(void* data) {
@@ -96,7 +102,7 @@ int video_main(void* data) {
 
     SDL_Event e;
 
-    while(true){
+    while (!SDL_AtomicGet(&should_quit)) {
         //Blit frame
         //std::optional<SDL_Surface> surface = q.pop();
 
@@ -122,9 +128,17 @@ int video_main(void* data) {
             }
         }
     }
+
+    SDL_Quit();
+
+	return 0;
 }
 
-mumble_error_t mumble_init(uint32_t) {
+mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
+	ownID = pluginID;
+
+	SDL_AtomicSet(&should_quit, 0);
+
     SDL_Thread* t = SDL_CreateThread(video_main, "video main thread", NULL);
 
     if(!t){
@@ -135,3 +149,4 @@ mumble_error_t mumble_init(uint32_t) {
 
     return MUMBLE_STATUS_OK;
 }
+

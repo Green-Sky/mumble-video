@@ -4,6 +4,8 @@ add_library(video SHARED
 	./video-main.cpp
 )
 
+target_compile_features(video PUBLIC cxx_std_17)
+
 target_link_libraries(video PUBLIC mumble_plugin)
 
 if(VCPKG_TARGET_TRIPLET)
