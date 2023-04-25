@@ -6,6 +6,7 @@
 #include "queue.hpp"
 
 #include <string_view>
+#include <array>
 #include <cstring>
 
 SDL_atomic_t should_quit;
@@ -115,7 +116,8 @@ int video_main(void* data) {
 
 		if (surface.has_value()) {
 			// TODO(green): SDL_BlitScaled
-			SDL_BlitSurface(*surface, NULL, main_surface, NULL);
+			//SDL_BlitSurface(*surface, NULL, main_surface, NULL);
+			SDL_BlitScaled(*surface, NULL, main_surface, NULL);
 
 			SDL_FreeSurface(*surface);
 
