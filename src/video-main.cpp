@@ -1,7 +1,7 @@
-#include <SDL.h>
-
 #include <MumbleAPI_v_1_2_x.h>
 #include <MumblePlugin_v_1_1_x.h>
+
+#include <SDL.h>
 
 #include "queue.hpp"
 
@@ -106,7 +106,8 @@ int video_main(void* data) {
 		//Blit frame
 		auto surface = q.pop();
 
-		if(surface.has_value()){
+		if (surface.has_value()) {
+			// TODO(green): SDL_BlitScaled
 			SDL_BlitSurface(*surface, NULL, main_surface, NULL);
 
 			SDL_FreeSurface(*surface);
@@ -114,16 +115,17 @@ int video_main(void* data) {
 			SDL_UpdateWindowSurface(main_window);
 		}
 
-		while(SDL_PollEvent(&e) != 0) {
-			switch(e.type){
+		while (SDL_PollEvent(&e) != 0) {
+			switch (e.type) {
 				case SDL_QUIT:
-					// TODO: destroy instead lol
+					// TODO(green): destroy instead
 					SDL_HideWindow(main_window);
 
 					break;
 				case SDL_WINDOWEVENT:
-					switch(e.window.event){
+					switch(e.window.event) {
 						case SDL_WINDOWEVENT_CLOSE:
+							// TODO(green): destroy instead ?
 							SDL_HideWindow(main_window);
 					}
 
@@ -151,5 +153,17 @@ mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
 	SDL_DetachThread(t);
 
 	return MUMBLE_STATUS_OK;
+}
+
+bool PLUGIN_CALLING_CONVENTION mumble_onReceiveData(mumble_connection_t connection, mumble_userid_t sender, const uint8_t* data, size_t dataLength, const char* dataID) {
+	if (std::string_view{dataID} != "video-001") {
+		return false;
+	}
+
+	mumbleAPI.log(ownID, "got data");
+
+	// TODO: do something with the data
+
+	return true;
 }
 
