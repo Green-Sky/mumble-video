@@ -54,12 +54,10 @@ void mumble_shutdown() {
 }
 
 void main_loop(void) {
-	using namespace std::literals::chrono_literals;
-
 	uint64_t next_byte = 0;
 	uint16_t sequence_id = 0;
 	while (!main_should_quit) {
-		std::this_thread::sleep_for(250ms);
+		std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
 		// check connection
 		//mumbleAPI.log(ownID, "check connection");
