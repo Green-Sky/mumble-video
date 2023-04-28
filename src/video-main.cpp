@@ -48,11 +48,11 @@ SDL_Window* init_sdl(const char* window_title, int window_pos_x, int window_pos_
 	return main_window;
 }
 
-void mumble_shutdown() {
+PLUGIN_EXPORT void PLUGIN_CALLING_CONVENTION mumble_shutdown() {
 	SDL_AtomicSet(&should_quit, 1);
 }
 
-MumbleStringWrapper mumble_getName() {
+PLUGIN_EXPORT MumbleStringWrapper PLUGIN_CALLING_CONVENTION mumble_getName() {
 	static const std::string_view name {"video"};
 
 	return {
@@ -62,7 +62,7 @@ MumbleStringWrapper mumble_getName() {
 	};
 }
 
-MumbleStringWrapper mumble_getAuthor() {
+PLUGIN_EXPORT MumbleStringWrapper PLUGIN_CALLING_CONVENTION mumble_getAuthor() {
 	static const std::string_view author {"Erik Scholz & David Zero"};
 
 	return {
@@ -72,7 +72,7 @@ MumbleStringWrapper mumble_getAuthor() {
 	};
 }
 
-struct MumbleStringWrapper mumble_getDescription() {
+PLUGIN_EXPORT struct MumbleStringWrapper PLUGIN_CALLING_CONVENTION mumble_getDescription() {
 	static const std::string_view description {"Video streaming for Mumble"};
 
 	return {
@@ -82,7 +82,7 @@ struct MumbleStringWrapper mumble_getDescription() {
 	};
 }
 
-mumble_version_t mumble_getVersion() {
+PLUGIN_EXPORT mumble_version_t PLUGIN_CALLING_CONVENTION mumble_getVersion() {
 	mumble_version_t version;
 
 	version.major = 0;
@@ -92,15 +92,15 @@ mumble_version_t mumble_getVersion() {
 	return version;
 }
 
-mumble_version_t mumble_getAPIVersion() {
+PLUGIN_EXPORT mumble_version_t PLUGIN_CALLING_CONVENTION mumble_getAPIVersion() {
 	return MUMBLE_PLUGIN_API_VERSION;
 }
 
-void mumble_registerAPIFunctions(void* apiStruct) {
+PLUGIN_EXPORT void PLUGIN_CALLING_CONVENTION mumble_registerAPIFunctions(void* apiStruct) {
 	mumbleAPI = MUMBLE_API_CAST(apiStruct);
 }
 
-void mumble_releaseResource(const void *) {
+PLUGIN_EXPORT void PLUGIN_CALLING_CONVENTION mumble_releaseResource(const void *) {
 }
 
 int video_main(void* data) {
@@ -150,7 +150,7 @@ int video_main(void* data) {
 	return 0;
 }
 
-mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
+PLUGIN_EXPORT mumble_error_t PLUGIN_CALLING_CONVENTION mumble_init(mumble_plugin_id_t pluginID) {
 	ownID = pluginID;
 
 	SDL_AtomicSet(&should_quit, 0);
@@ -166,7 +166,7 @@ mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
 	return MUMBLE_STATUS_OK;
 }
 
-bool PLUGIN_CALLING_CONVENTION mumble_onReceiveData(mumble_connection_t connection, mumble_userid_t sender, const uint8_t* data, size_t dataLength, const char* dataID) {
+PLUGIN_EXPORT bool PLUGIN_CALLING_CONVENTION mumble_onReceiveData(mumble_connection_t connection, mumble_userid_t sender, const uint8_t* data, size_t dataLength, const char* dataID) {
 	if (std::string_view{dataID} != "video-001") {
 		return false;
 	}
