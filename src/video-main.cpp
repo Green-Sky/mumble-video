@@ -24,6 +24,8 @@ struct {
 struct MumbleAPI_v_1_2_x mumbleAPI;
 mumble_plugin_id_t ownID;
 
+extern "C" {
+
 SDL_Window* init_sdl(const char* window_title, int window_pos_x, int window_pos_y, int window_width, int window_height, uint32_t flags){
 	if(SDL_Init(SDL_INIT_VIDEO) < 0){
 		return NULL;
@@ -253,4 +255,6 @@ PLUGIN_EXPORT bool PLUGIN_CALLING_CONVENTION mumble_onReceiveData(mumble_connect
 
 	return true;
 }
+
+} // extern "C"
 
