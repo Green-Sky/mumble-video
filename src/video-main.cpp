@@ -1,5 +1,5 @@
-#include <MumbleAPI_v_1_2_x.h>
-#include <MumblePlugin_v_1_1_x.h>
+#include <MumbleAPI_v_1_0_x.h>
+#include <MumblePlugin_v_1_0_x.h>
 
 #include <SDL.h>
 
@@ -21,7 +21,7 @@ struct {
 	std::array<uint8_t, 64*64*3> img_data;
 } g_current_frame {};
 
-struct MumbleAPI_v_1_2_x mumbleAPI;
+struct MumbleAPI_v_1_0_x mumbleAPI;
 mumble_plugin_id_t ownID;
 
 extern "C" {

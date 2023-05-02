@@ -1,5 +1,5 @@
-#include <MumbleAPI_v_1_2_x.h>
-#include <MumblePlugin_v_1_1_x.h>
+#include <MumbleAPI_v_1_0_x.h>
+#include <MumblePlugin_v_1_0_x.h>
 #include <PluginComponents_v_1_0_x.h>
 
 #include <cstring>
@@ -18,7 +18,7 @@
 //  test_64x64
 #include "../res/test_png_64x64.c"
 
-struct MumbleAPI_v_1_2_x mumbleAPI;
+struct MumbleAPI_v_1_0_x mumbleAPI;
 mumble_plugin_id_t ownID;
 
 std::atomic_bool main_should_quit;
