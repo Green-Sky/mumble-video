@@ -61,7 +61,7 @@ jobs:
     # TODO: cache
     - name: Install Dependencies
       #run: vcpkg install sdl2[core,vulkan]:x64-windows
-      run: vcpkg install sdl2[core]:x64-windows
+      run: vcpkg install sdl2[core]:x64-windows-static
 
     # setup vs env
     - uses: ilammy/msvc-dev-cmd@v1
@@ -69,7 +69,7 @@ jobs:
         arch: amd64
 
     - name: Configure CMake
-      run: cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+      run: cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
