@@ -14,13 +14,15 @@ target_link_libraries(video PUBLIC mumble_plugin)
 if(VCPKG_TARGET_TRIPLET)
 	target_link_libraries(video
 		PUBLIC
-			SDL2::SDL2
 			SDL2::SDL2main
-			#SDL2::SDL2-static
+			SDL2::SDL2-static
 	)
 else()
-	target_include_directories(video PUBLIC "${SDL2_INCLUDE_DIR}")
-	target_link_libraries(video PUBLIC ${SDL2_LIBRARY})
+	target_link_libraries(video
+		PUBLIC
+			SDL2::SDL2main
+			SDL2::SDL2
+	)
 endif()
 
 ########################################
