@@ -11,7 +11,7 @@
 
 SDL_atomic_t should_quit;
 SDL_Window* main_window = NULL;
-SDL_Surface* main_surface = NULL;
+SDL_Thread* t = NULL;
 
 FrameQueue g_q;
 
@@ -37,7 +37,7 @@ SDL_Window* init_sdl(const char* window_title, int window_pos_x, int window_pos_
 		return NULL;
 	}
 
-	main_surface = SDL_GetWindowSurface(main_window);
+	SDL_Surface* main_surface = SDL_GetWindowSurface(main_window);
 
 	if(main_surface == NULL){
 		return NULL;
@@ -52,6 +52,7 @@ SDL_Window* init_sdl(const char* window_title, int window_pos_x, int window_pos_
 
 PLUGIN_EXPORT void PLUGIN_CALLING_CONVENTION mumble_shutdown() {
 	SDL_AtomicSet(&should_quit, 1);
+	SDL_WaitThread(t, NULL);
 }
 
 PLUGIN_EXPORT MumbleStringWrapper PLUGIN_CALLING_CONVENTION mumble_getName() {
@@ -106,7 +107,7 @@ PLUGIN_EXPORT void PLUGIN_CALLING_CONVENTION mumble_releaseResource(const void *
 }
 
 int video_main(void* data) {
-	if(!init_sdl("Muh Video Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 400, SDL_WINDOW_BORDERLESS)){
+	if(!init_sdl("Muh Video Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 400, SDL_WINDOW_SHOWN)){
 		return -1;
 	}
 
@@ -117,10 +118,8 @@ int video_main(void* data) {
 		auto surface = g_q.pop();
 
 		if (surface.has_value()) {
-			// TODO(green): SDL_BlitScaled
-			//SDL_BlitSurface(*surface, NULL, main_surface, NULL);
+			SDL_Surface* main_surface = SDL_GetWindowSurface(main_window);
 			SDL_BlitScaled(*surface, NULL, main_surface, NULL);
-
 			SDL_FreeSurface(*surface);
 
 			SDL_UpdateWindowSurface(main_window);
@@ -147,6 +146,8 @@ int video_main(void* data) {
 		SDL_Delay(5);
 	}
 
+	SDL_DestroyWindow(main_window);
+
 	SDL_Quit();
 
 	return 0;
@@ -157,13 +158,11 @@ PLUGIN_EXPORT mumble_error_t PLUGIN_CALLING_CONVENTION mumble_init(mumble_plugin
 
 	SDL_AtomicSet(&should_quit, 0);
 
-	SDL_Thread* t = SDL_CreateThread(video_main, "video main thread", NULL);
+	t = SDL_CreateThread(video_main, "video main thread", NULL);
 
 	if (!t) {
 		return MUMBLE_EC_GENERIC_ERROR;
 	}
-
-	SDL_DetachThread(t);
 
 	return MUMBLE_STATUS_OK;
 }
