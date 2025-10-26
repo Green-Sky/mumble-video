@@ -57,7 +57,7 @@ void main_loop(void) {
 	uint64_t next_byte = 0;
 	uint16_t sequence_id = 0;
 	while (!main_should_quit) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		if (main_should_quit) break;
 
 		// check connection
@@ -98,7 +98,7 @@ void main_loop(void) {
 		}
 
 		// send to all users in channel
-		mumbleAPI.log(ownID, "send data");
+		//mumbleAPI.log(ownID, "send data");
 		std::vector<uint8_t> pkg_data;
 
 		{ // sequence_id

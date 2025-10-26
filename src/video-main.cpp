@@ -210,6 +210,7 @@ PLUGIN_EXPORT bool PLUGIN_CALLING_CONVENTION mumble_onReceiveData(mumble_connect
 	if (g_current_frame.pos_in_img != pos_in_img) {
 		// out of order data, drop
 		g_current_frame.pos_in_img = 0;
+		mumbleAPI.log(ownID, "out of order data, dropping (check your allowed throughput)");
 	}
 
 	{ // add data to tmp buffer
