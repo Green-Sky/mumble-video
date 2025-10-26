@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9...4.0 FATAL_ERROR)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-add_library(video SHARED
+add_library(video MODULE
 	./queue.hpp
 	./video-main.cpp
 )
@@ -27,7 +27,7 @@ endif()
 
 ########################################
 
-add_library(dummy_send_img_video SHARED
+add_library(dummy_send_img_video MODULE
 	./dummy_send_img_video.cpp
 )
 
