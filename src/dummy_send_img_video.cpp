@@ -50,7 +50,7 @@ mumble_error_t mumble_init(mumble_plugin_id_t pluginID) {
 void mumble_shutdown() {
 	main_should_quit = true;
 
-	// should i block here?
+	main_thread.join();
 }
 
 void main_loop(void) {
@@ -58,6 +58,7 @@ void main_loop(void) {
 	uint16_t sequence_id = 0;
 	while (!main_should_quit) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		if (main_should_quit) break;
 
 		// check connection
 		//mumbleAPI.log(ownID, "check connection");
@@ -130,6 +131,8 @@ void main_loop(void) {
 			mumbleAPI.log(ownID, "failed to send data");
 			continue;
 		}
+
+		mumbleAPI.freeMemory(ownID, channel_user_list);
 
 		next_byte += data_size;
 		if (next_byte >= img_size) {
