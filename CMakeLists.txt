@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9...4.0 FATAL_ERROR)
 
 # cmake setup begin
 project(mumble-video-plugin C CXX)
